@@ -1,0 +1,47 @@
+name: downloader_all_platform
+description: "A modern, high-performance cross-platform video and audio downloader built with Flutter."
+publish_to: 'none'
+version: 1.0.0-beta.1+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+
+  # Theming & UI
+  dynamic_color: ^1.7.0
+  google_fonts: ^6.2.1
+
+  # Core Media Engine (Pure Dart, cross-platform)
+  youtube_explode_dart: ^2.3.6
+
+  # Storage & Utilities
+  shared_preferences: ^2.3.5
+  path_provider: ^2.1.5
+  path: ^1.9.1
+  url_launcher: ^6.3.1
+  share_plus: ^10.1.4
+  uuid: ^4.5.1
+  file_picker: ^11.0.3
+  connectivity_plus: ^7.3.1
+  # Notifications & Background / Window Management
+  flutter_local_notifications: ^22.3.1
+  window_manager: ^0.5.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/images/

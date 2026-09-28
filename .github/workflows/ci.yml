@@ -1,0 +1,185 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  analyze-and-test:
+    name: Quality Gates (Analyze & Test)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Verify Code Formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Run Static Analysis
+        run: flutter analyze
+
+      - name: Run Unit & Widget Tests
+        run: flutter test --coverage
+
+  build-android:
+    name: Build Android APK
+    needs: analyze-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Android Release APK
+        run: flutter build apk --release
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaGrab-android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: warn
+
+  build-macos:
+    name: Build macOS Desktop (.dmg & .zip)
+    needs: analyze-and-test
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build macOS Application
+        run: flutter build macos --release
+
+      - name: Package macOS App (.dmg & .zip)
+        run: |
+          mkdir -p macos-artifacts
+          cd build/macos/Build/Products/Release
+          zip -r -y "$GITHUB_WORKSPACE/macos-artifacts/MediaGrab-macos.zip" MediaGrab.app
+          hdiutil create -volname "MediaGrab" -srcfolder MediaGrab.app -ov -format UDZO "$GITHUB_WORKSPACE/macos-artifacts/MediaGrab-macos.dmg"
+          cd -
+
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaGrab-macos
+          path: macos-artifacts/*
+          if-no-files-found: warn
+
+  build-windows:
+    name: Build Windows Desktop (.zip & setup.exe)
+    needs: analyze-and-test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Windows Application
+        run: flutter build windows --release
+
+      - name: Package Windows Portable Zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "windows-artifacts"
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "windows-artifacts\MediaGrab-windows-x64.zip" -Force
+
+      - name: Install Inno Setup & Compile Installer
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" windows\installer\inno_setup.iss
+          if (Test-Path "build\windows\installer\MediaGrab-windows-setup.exe") {
+            Copy-Item "build\windows\installer\MediaGrab-windows-setup.exe" -Destination "windows-artifacts\MediaGrab-windows-setup.exe"
+          }
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaGrab-windows
+          path: windows-artifacts/*
+          if-no-files-found: warn
+
+  build-linux:
+    name: Build Linux Desktop
+    needs: analyze-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Linux Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Linux Application
+        run: flutter build linux --release
+
+      - name: Package Linux App
+        run: |
+          tar -czvf MediaGrab-linux-x64.tar.gz -C build/linux/x64/release/bundle .
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaGrab-linux
+          path: MediaGrab-linux-x64.tar.gz
+          if-no-files-found: warn

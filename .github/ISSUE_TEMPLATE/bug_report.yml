@@ -1,0 +1,95 @@
+name: Bug Report
+description: Create a report to help us improve and fix issues in MediaGrab
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please search existing issues first to avoid duplicates.
+
+  - type: checkboxes
+    id: platforms
+    attributes:
+      label: Operating System / Platform
+      description: Which platform(s) does this issue occur on?
+      options:
+        - label: Android
+        - label: iOS
+        - label: macOS
+        - label: Windows
+        - label: Linux
+    validations:
+      required: true
+
+  - type: input
+    id: app_version
+    attributes:
+      label: MediaGrab Version
+      description: What version or commit of MediaGrab are you running? (e.g., v1.0.0)
+      placeholder: "v1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: ytdlp_version
+    attributes:
+      label: yt-dlp / ffmpeg Version (if applicable)
+      description: Run `yt-dlp --version` and `ffmpeg -version` in your terminal and paste here if relevant.
+      placeholder: "yt-dlp 2024.08.06, ffmpeg 7.0"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed step-by-step instructions to reproduce the problem.
+      value: |
+        1. Open the app
+        2. Paste URL '...'
+        3. Select format / quality '...'
+        4. Tap 'Download'
+        5. Observe error
+    validations:
+      required: true
+
+  - type: input
+    id: test_url
+    attributes:
+      label: Media URL Tested
+      description: The public URL that produced the error (please do not share sensitive or private URLs).
+      placeholder: "https://www.youtube.com/watch?v=..."
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Error Output
+      description: Paste any error messages, terminal logs, or stack traces here.
+      render: shell
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate.
+          required: true
+        - label: I am using the latest release or build from `main`.
+          required: true
+        - label: The issue is reproducible and not caused by invalid network or blocked domain.
+          required: true

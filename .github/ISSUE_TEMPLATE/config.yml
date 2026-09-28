@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerability Reporting
+    url: https://github.com/raffayalizafar/downloader_all_platform/security/advisories/new
+    about: Please report security vulnerabilities privately here.
+  - name: Documentation & User Guide
+    url: https://github.com/raffayalizafar/downloader_all_platform/blob/main/docs/USER_GUIDE.md
+    about: Read our comprehensive user guide before filing questions.

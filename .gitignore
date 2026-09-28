@@ -1,0 +1,104 @@
+# Miscellaneous & OS
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# Secrets, Signing, & Sensitive Environment Files
+# NEVER commit private signing keys or local environment secrets!
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+*.key
+*.mobileprovision
+*.cer
+*.crt
+key.properties
+local.properties
+.env
+.env.*
+!.env.example
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# Flutter / Dart / Pub
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.flutter-plugins
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication & Obfuscation
+app.*.symbols
+app.*.map.json
+
+# Android
+.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/captures/
+android/.cxx/
+android/app/.cxx/
+
+# iOS & macOS
+**/DerivedData/
+**/xcuserdata/
+**/Pods/
+**/.symlinks/
+ios/Flutter/ephemeral/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+macos/Flutter/ephemeral/
+macos/Flutter/Generated.xcconfig
+
+# Windows
+windows/flutter/ephemeral/
+*.suo
+*.user
+*.vcxproj.user
+
+# Linux
+linux/flutter/ephemeral/
+
+# Local Release Binaries (distributed via GitHub Releases)
+releases/
+
+# Temporary Download Files
+*.part
+*.ytdl
+*.aria2
+
+# Kotlin compilation cache
+.kotlin/
+android/.kotlin/
