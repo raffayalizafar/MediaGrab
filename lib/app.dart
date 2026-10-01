@@ -11,7 +11,10 @@ import 'features/settings/providers/settings_provider.dart';
 import 'features/settings/ui/settings_screen.dart';
 import 'features/splash/ui/splash_screen.dart';
 import 'features/templates/ui/templates_screen.dart';
+import 'features/updates/providers/update_provider.dart';
+import 'features/updates/ui/update_dialog.dart';
 import 'shared/widgets/adaptive_scaffold.dart';
+import 'shared/widgets/top_notification.dart';
 
 /// Root Application widget configuring Material 3, Dynamic Colors, and Navigation.
 class MediaGrabApp extends ConsumerWidget {
@@ -57,9 +60,14 @@ class MediaGrabApp extends ConsumerWidget {
 final activeTabProvider = StateProvider<int>((ref) => 0);
 
 /// Navigation Shell hosting Bottom Navigation on Mobile and Navigation Rail on Desktop.
-class MainNavigationShell extends ConsumerWidget {
+class MainNavigationShell extends ConsumerStatefulWidget {
   const MainNavigationShell({super.key});
 
+  @override
+  ConsumerState<MainNavigationShell> createState() => _MainNavigationShellState();
+}
+
+class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
   final List<Widget> _screens = const [
     HomeScreen(),
     DownloadsScreen(),
@@ -68,7 +76,42 @@ class MainNavigationShell extends ConsumerWidget {
   ];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkStartupUpdate();
+    });
+  }
+
+  void _checkStartupUpdate() {
+    final updateState = ref.read(updateProvider);
+    if (!updateState.autoCheckOnStartup) return;
+
+    ref.read(updateProvider.notifier).checkForUpdates(isManual: false).then((_) {
+      if (!mounted) return;
+      final current = ref.read(updateProvider);
+      if (current.status == UpdateStatus.updateAvailable &&
+          current.latestRelease != null) {
+        TopNotification.show(
+          context,
+          message: '✨ MediaGrab ${current.latestRelease!.tagName} is available!',
+          actionLabel: 'Details',
+          duration: const Duration(seconds: 7),
+          onAction: () {
+            UpdateDialog.show(
+              context,
+              release: current.latestRelease!,
+              recommendedAsset: current.recommendedAsset,
+              currentVersion: current.currentVersion,
+            );
+          },
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentIndex = ref.watch(activeTabProvider);
 
     return AdaptiveScaffold(

@@ -107,6 +107,23 @@ class StorageService {
   Future<bool> setSlowSpeedWarning(bool value) =>
       _prefs.setBool(AppConstants.keySlowSpeedWarning, value);
 
+  bool get checkUpdatesOnStartup =>
+      _prefs.getBool(AppConstants.keyCheckUpdatesOnStartup) ??
+      AppConstants.defaultCheckUpdatesOnStartup;
+  Future<bool> setCheckUpdatesOnStartup(bool value) =>
+      _prefs.setBool(AppConstants.keyCheckUpdatesOnStartup, value);
+
+  bool get includePrereleases =>
+      _prefs.getBool(AppConstants.keyIncludePrereleases) ??
+      AppConstants.defaultIncludePrereleases;
+  Future<bool> setIncludePrereleases(bool value) =>
+      _prefs.setBool(AppConstants.keyIncludePrereleases, value);
+
+  int? get lastUpdateCheckTimestamp =>
+      _prefs.getInt(AppConstants.keyLastUpdateCheckTimestamp);
+  Future<bool> setLastUpdateCheckTimestamp(int value) =>
+      _prefs.setInt(AppConstants.keyLastUpdateCheckTimestamp, value);
+
   // --- Download Directory Resolution ---
 
   static Future<void> _ensureCategorySubdirs(String basePath) async {

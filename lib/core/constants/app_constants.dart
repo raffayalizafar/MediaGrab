@@ -28,6 +28,11 @@ class AppConstants {
   static const String keyAutoResumeOnReconnect =
       'settings_auto_resume_reconnect';
   static const String keySlowSpeedWarning = 'settings_slow_speed_warning';
+  static const String keyCheckUpdatesOnStartup =
+      'settings_check_updates_startup';
+  static const String keyIncludePrereleases = 'settings_include_prereleases';
+  static const String keyLastUpdateCheckTimestamp =
+      'settings_last_update_check';
   static const String keySavedTemplates = 'saved_command_templates';
   static const String keyDownloadHistory = 'download_history_records';
 
@@ -37,6 +42,8 @@ class AppConstants {
   static const String defaultAudioFormat = 'mp3';
   static const String defaultVideoQuality = '1080p';
   static const String defaultSubtitleLang = 'en';
+  static const bool defaultCheckUpdatesOnStartup = true;
+  static const bool defaultIncludePrereleases = true;
 
   // Supported Formats
   static const List<String> videoFormats = ['mp4', 'mkv', 'webm', 'mov'];

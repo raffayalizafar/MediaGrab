@@ -10,6 +10,8 @@ import '../../../shared/widgets/animated_pressable.dart';
 import '../../../shared/widgets/app_dropdown.dart';
 import '../../../shared/widgets/stitch_top_bar.dart';
 import '../../../shared/widgets/top_notification.dart';
+import '../../updates/providers/update_provider.dart';
+import '../../updates/ui/update_dialog.dart';
 import '../providers/settings_provider.dart';
 
 /// Modernized Application Settings & Preferences screen matching Stitch specifications.
@@ -27,6 +29,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final GlobalKey _downloadsKey = GlobalKey();
   final GlobalKey _processingKey = GlobalKey();
   final GlobalKey _engineKey = GlobalKey();
+  final GlobalKey _updatesKey = GlobalKey();
   final GlobalKey _aboutKey = GlobalKey();
 
   int _selectedCategoryIndex = 0;
@@ -140,7 +143,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                         const SizedBox(height: 28),
 
-                        // Section 5: About
+                        // Section 5: Software Updates
+                        Container(key: _updatesKey),
+                        _buildSectionHeader(
+                          context,
+                          title: 'Software Updates',
+                          badge: 'GitHub Releases API',
+                          icon: Icons.system_update_rounded,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildUpdatesCard(context, ref),
+
+                        const SizedBox(height: 28),
+
+                        // Section 6: About
                         Container(key: _aboutKey),
                         _buildSectionHeader(
                           context,
@@ -233,6 +249,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       'Download Preferences',
       'Media Processing',
       'Engine & Network',
+      'Updates',
       'About',
     ];
 
@@ -249,7 +266,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 if (index == 1) _scrollToKey(_downloadsKey, 1);
                 if (index == 2) _scrollToKey(_processingKey, 2);
                 if (index == 3) _scrollToKey(_engineKey, 3);
-                if (index == 4) _scrollToKey(_aboutKey, 4);
+                if (index == 4) _scrollToKey(_updatesKey, 4);
+                if (index == 5) _scrollToKey(_aboutKey, 5);
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -1103,6 +1121,293 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildUpdatesCard(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final isAmoled = isDark && theme.scaffoldBackgroundColor == Colors.black;
+
+    final updateState = ref.watch(updateProvider);
+    final updateNotifier = ref.read(updateProvider.notifier);
+
+    String lastCheckedText = 'Never checked';
+    if (updateState.lastChecked != null) {
+      final diff = DateTime.now().difference(updateState.lastChecked!);
+      if (diff.inSeconds < 45) {
+        lastCheckedText = 'Just now';
+      } else if (diff.inMinutes < 60) {
+        lastCheckedText = '${diff.inMinutes}m ago';
+      } else if (diff.inHours < 24) {
+        lastCheckedText = '${diff.inHours}h ago';
+      } else {
+        lastCheckedText = '${diff.inDays}d ago';
+      }
+    }
+
+    return _buildAcrylicContainer(
+      isDark: isDark,
+      isAmoled: isAmoled,
+      children: [
+        // Status Row
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: _getUpdateStatusColor(updateState.status).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _getUpdateStatusColor(updateState.status).withValues(alpha: 0.3),
+                  ),
+                ),
+                child: updateState.status == UpdateStatus.checking
+                    ? const Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: AppColors.indigo400,
+                          ),
+                        ),
+                      )
+                    : Icon(
+                        _getUpdateStatusIcon(updateState.status),
+                        color: _getUpdateStatusColor(updateState.status),
+                        size: 22,
+                      ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _getUpdateStatusTitle(updateState),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppColors.slate900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _getUpdateStatusSubtitle(updateState, lastCheckedText),
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: isDark ? AppColors.slate400 : Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              if (updateState.status == UpdateStatus.updateAvailable &&
+                  updateState.latestRelease != null)
+                AnimatedPressable(
+                  onTap: () {
+                    UpdateDialog.show(
+                      context,
+                      release: updateState.latestRelease!,
+                      recommendedAsset: updateState.recommendedAsset,
+                      currentVersion: updateState.currentVersion,
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.indigo500, AppColors.violetSeed],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.indigo500.withValues(alpha: 0.3),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.system_update_alt_rounded, color: Colors.white, size: 15),
+                        SizedBox(width: 6),
+                        Text(
+                          'View Update',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                AnimatedPressable(
+                  onTap: updateState.status == UpdateStatus.checking
+                      ? null
+                      : () async {
+                          await updateNotifier.checkForUpdates(isManual: true);
+                          if (!context.mounted) return;
+                          final updated = ref.read(updateProvider);
+                          if (updated.status == UpdateStatus.upToDate) {
+                            TopNotification.show(
+                              context,
+                              message: 'MediaGrab is up to date (v${updated.currentVersion})',
+                              icon: Icons.check_circle_rounded,
+                            );
+                          } else if (updated.status == UpdateStatus.updateAvailable &&
+                              updated.latestRelease != null) {
+                            UpdateDialog.show(
+                              context,
+                              release: updated.latestRelease!,
+                              recommendedAsset: updated.recommendedAsset,
+                              currentVersion: updated.currentVersion,
+                            );
+                          } else if (updated.status == UpdateStatus.error) {
+                            TopNotification.show(
+                              context,
+                              message: updated.errorMessage ?? 'Update check failed',
+                              isError: true,
+                              icon: Icons.error_outline_rounded,
+                            );
+                          }
+                        },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? (isAmoled ? const Color(0xFF1E1E1E) : AppColors.slate800)
+                          : Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.sync_rounded,
+                          size: 15,
+                          color: isDark ? AppColors.slate300 : AppColors.slate700,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Check Now',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? AppColors.slate200 : AppColors.slate800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+
+        const Divider(height: 1),
+
+        // Auto Check on Startup Switch
+        _buildSettingsRow(
+          context,
+          icon: Icons.schedule_rounded,
+          iconColor: AppColors.indigo400,
+          title: 'Check on Startup',
+          subtitle: 'Silently query GitHub Releases for new builds when MediaGrab launches',
+          isDark: isDark,
+          trailing: Switch.adaptive(
+            value: updateState.autoCheckOnStartup,
+            activeTrackColor: AppColors.indigo500,
+            onChanged: (val) => updateNotifier.setAutoCheckOnStartup(val),
+          ),
+        ),
+
+        const Divider(height: 1),
+
+        // Include Pre-releases Switch
+        _buildSettingsRow(
+          context,
+          icon: Icons.science_outlined,
+          iconColor: Colors.amber.shade600,
+          title: 'Include Beta & Pre-releases',
+          subtitle: 'Notify when experimental pre-release builds become available',
+          isDark: isDark,
+          trailing: Switch.adaptive(
+            value: updateState.includePrereleases,
+            activeTrackColor: AppColors.indigo500,
+            onChanged: (val) => updateNotifier.setIncludePrereleases(val),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _getUpdateStatusColor(UpdateStatus status) {
+    switch (status) {
+      case UpdateStatus.updateAvailable:
+        return AppColors.emerald400;
+      case UpdateStatus.upToDate:
+        return AppColors.emerald400;
+      case UpdateStatus.checking:
+        return AppColors.indigo400;
+      case UpdateStatus.error:
+        return Colors.orangeAccent;
+      case UpdateStatus.idle:
+        return AppColors.indigo400;
+    }
+  }
+
+  IconData _getUpdateStatusIcon(UpdateStatus status) {
+    switch (status) {
+      case UpdateStatus.updateAvailable:
+        return Icons.new_releases_rounded;
+      case UpdateStatus.upToDate:
+        return Icons.check_circle_rounded;
+      case UpdateStatus.checking:
+        return Icons.sync_rounded;
+      case UpdateStatus.error:
+        return Icons.warning_amber_rounded;
+      case UpdateStatus.idle:
+        return Icons.system_update_rounded;
+    }
+  }
+
+  String _getUpdateStatusTitle(UpdateState state) {
+    switch (state.status) {
+      case UpdateStatus.updateAvailable:
+        return 'Update Available: ${state.latestRelease?.tagName}';
+      case UpdateStatus.upToDate:
+        return 'You\'re on the Latest Version';
+      case UpdateStatus.checking:
+        return 'Checking for Updates...';
+      case UpdateStatus.error:
+        return 'Update Check Incomplete';
+      case UpdateStatus.idle:
+        return 'Software Updates';
+    }
+  }
+
+  String _getUpdateStatusSubtitle(UpdateState state, String lastChecked) {
+    switch (state.status) {
+      case UpdateStatus.updateAvailable:
+        return 'A newer build is ready to install • Last checked: $lastChecked';
+      case UpdateStatus.upToDate:
+        return 'Version v${state.currentVersion} is up to date • Checked $lastChecked';
+      case UpdateStatus.checking:
+        return 'Connecting to GitHub Releases API...';
+      case UpdateStatus.error:
+        return state.errorMessage ?? 'Unable to connect to GitHub. Check connection.';
+      case UpdateStatus.idle:
+        return 'Current: v${state.currentVersion} • Last checked: $lastChecked';
+    }
   }
 
   Widget _buildAboutCard(BuildContext context) {
